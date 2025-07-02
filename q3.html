@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3. 内面性 | 未来設計力スコア診断</title>
+    <style>
+        /* q1.html, q2.htmlと同じスタイルを再利用 */
+        :root {
+            --primary-color: #555;
+            --secondary-color: #f4f7f9;
+        }
+        body.male-theme { --primary-color: #3498db; }
+        body.female-theme { --primary-color: #e91e63; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1.5em;
+        }
+        .question-group { margin-bottom: 2em; }
+        label.question-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        .radio-options label {
+            display: inline-block;
+            margin-right: 1.5em;
+            font-weight: normal;
+        }
+        .radio-options input { margin-right: 0.4em; }
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .submit-button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>3. 内面性 - あなたの心のカタチ</h1>
+        <form id="q3-form">
+            <div class="question-group">
+                <label class="question-label">Q1. 興味の方向は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q1" value="e" required> 大勢でいるのが好き</label>
+                    <label><input type="radio" name="q1" value="i"> 一人か少人数が好き</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q2. 物事の捉え方は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q2" value="s" required> 現実的・具体的</label>
+                    <label><input type="radio" name="q2" value="n"> 理想的・抽象的</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q3. 判断の基準は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q3" value="t" required> 論理や公平さ</label>
+                    <label><input type="radio" name="q3" value="f"> 感情や共感</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q4. 外界への接し方は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q4" value="j" required> 計画的・規則正しい</label>
+                    <label><input type="radio" name="q4" value="p"> 臨機応変・柔軟</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q5. ストレスを感じた時どうなる？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q5" value="calm" required> 冷静に分析する</label>
+                    <label><input type="radio" name="q5" value="express"> 感情を表に出す</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q6. 新しいことへの態度は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q6" value="stable" required> 安定を好む</label>
+                    <label><input type="radio" name="q6" value="challenge"> 変化や挑戦を好む</label>
+                </div>
+            </div>
+            <div class="question-group">
+                <label class="question-label">Q7. 自分に対する評価は？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="q7" value="confident" required> 自分に自信がある</label>
+                    <label><input type="radio" name="q7" value="modest"> 控えめである</label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">次へ進む</button>
+        </form>
+    </div>
+
+    <script>
+        // --- ページ読み込み時の処理 ---
+        window.addEventListener('DOMContentLoaded', function() {
+            const gender = localStorage.getItem('gender');
+            if (gender) {
+                document.body.classList.add(gender + '-theme');
+            }
+        });
+
+        // --- 「次へ進む」ボタンが押された時の処理 ---
+        document.getElementById('q3-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 回答データをオブジェクトにまとめる
+            const q3_data = {
+                q1_interest: document.querySelector('input[name="q1"]:checked').value,
+                q2_reality: document.querySelector('input[name="q2"]:checked').value,
+                q3_decision: document.querySelector('input[name="q3"]:checked').value,
+                q4_lifestyle: document.querySelector('input[name="q4"]:checked').value,
+                q5_stress: document.querySelector('input[name="q5"]:checked').value,
+                q6_challenge: document.querySelector('input[name="q6"]:checked').value,
+                q7_self_esteem: document.querySelector('input[name="q7"]:checked').value,
+            };
+
+            // localStorageに回答データを保存
+            localStorage.setItem('q3_data', JSON.stringify(q3_data));
+
+            // 次の質問ページへ移動
+            window.location.href = 'q4.html';
+        });
+    </script>
+
+</body>
+</html>
