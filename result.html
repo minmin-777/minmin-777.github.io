@@ -65,14 +65,17 @@
     function calculateBasicScore(gender, q1) {
         let score = 50;
         const height = parseInt(q1.height);
+        const weight = parseFloat(q1.weight);
         const age = parseInt(q1.age);
 
-        // 身長スコア
-        if (gender === 'male') {
-            if (height >= 170) score += (height - 170) * 5 + 30;
-        } else { // female
-            if (height > 170) score -= 50;
-            else score += 30 - Math.abs(158 - height) * 2;
+        // BMIスコアの計算
+        if (height > 0) {
+            const heightInMeters = height / 100;
+            const bmi = weight / (heightInMeters * heightInMeters);
+            
+            // BMIは22を理想値とし、そこから離れるほどスコアが下がる
+            const bmiScore = 60 - (Math.abs(22 - bmi) * 5);
+            score += Math.max(0, bmiScore); // マイナス点にならないようにする
         }
 
         // 年齢スコア
