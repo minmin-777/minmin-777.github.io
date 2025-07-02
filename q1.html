@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 基礎能力 | 未来設計力スコア診断</title>
+    <style>
+        /* CSS変数の定義 */
+        :root {
+            --primary-color: #555; /* デフォルトの色 */
+            --secondary-color: #f4f7f9;
+        }
+        /* 性別ごとのテーマカラー */
+        body.male-theme {
+            --primary-color: #3498db; /* 男性のテーマカラー (青) */
+        }
+        body.female-theme {
+            --primary-color: #e91e63; /* 女性のテーマカラー (ピンク) */
+        }
+
+        /* 基本スタイル */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1em;
+        }
+
+        /* フォームのスタイル */
+        .question-group {
+            margin-bottom: 2em;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box; /* paddingを含めた幅計算 */
+        }
+        .radio-options label {
+            display: inline-block;
+            margin-right: 1.5em;
+            font-weight: normal;
+        }
+        .radio-options input {
+            margin-right: 0.4em;
+        }
+
+        /* 次へボタン */
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .submit-button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>1. 基礎能力</h1>
+        <form id="q1-form">
+            <div class="question-group">
+                <label for="height">身長 (cm)</label>
+                <input type="number" id="height" placeholder="例: 170" required>
+            </div>
+
+            <div class="question-group">
+                <label for="age">年齢</label>
+                <input type="number" id="age" placeholder="例: 28" required>
+            </div>
+            
+            <div class="question-group">
+                <label>家族との関係性</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="family" value="good" required> 良好</label>
+                    <label><input type="radio" name="family" value="average"> 普通</label>
+                    <label><input type="radio" name="family" value="not_good"> あまり良くない</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label for="education">最終学歴</label>
+                <select id="education" required>
+                    <option value="">選択してください</option>
+                    <option value="graduate">大学院</option>
+                    <option value="university">大学</option>
+                    <option value="college">短大・専門学校</option>
+                    <option value="highschool">高校</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+
+            <div id="university-details" style="display:none;">
+                <div class="question-group">
+                    <label>学問系統</label>
+                    <div class="radio-options">
+                        <label><input type="radio" name="field" value="science"> 理系</label>
+                        <label><input type="radio" name="field" value="arts"> 文系</label>
+                        <label><input type="radio" name="field" value="other"> その他</label>
+                    </div>
+                </div>
+                <div class="question-group">
+                    <label for="university-tier">学歴詳細</label>
+                    <select id="university-tier">
+                        <option value="">選択してください</option>
+                        <option value="tier1">旧帝大・早慶上理レベル</option>
+                        <option value="tier2">MARCH・関関同立レベル</option>
+                        <option value="tier3">その他</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">次へ進む</button>
+        </form>
+    </div>
+
+    <script>
+        // --- ページ読み込み時の処理 ---
+        window.addEventListener('DOMContentLoaded', function() {
+            // 1. localStorageから性別情報を取得
+            const gender = localStorage.getItem('gender');
+
+            // 2. 性別に応じてbodyにクラスを追加
+            if (gender) {
+                document.body.classList.add(gender + '-theme');
+            }
+
+            // 3. 学歴に応じて追加の質問を表示/非表示にする
+            const educationSelect = document.getElementById('education');
+            const universityDetails = document.getElementById('university-details');
+
+            educationSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+                if (selectedValue === 'graduate' || selectedValue === 'university') {
+                    universityDetails.style.display = 'block';
+                } else {
+                    universityDetails.style.display = 'none';
+                }
+            });
+        });
+
+        // --- 「次へ進む」ボタンが押された時の処理 ---
+        document.getElementById('q1-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // ページの再読み込みを防止
+
+            // 回答データをオブジェクトにまとめる
+            const q1_data = {
+                height: document.getElementById('height').value,
+                age: document.getElementById('age').value,
+                family: document.querySelector('input[name="family"]:checked').value,
+                education: document.getElementById('education').value,
+                field: document.querySelector('input[name="field"]:checked') ? document.querySelector('input[name="field"]:checked').value : null,
+                university_tier: document.getElementById('university-tier').value,
+            };
+
+            // localStorageに回答データを保存
+            localStorage.setItem('q1_data', JSON.stringify(q1_data));
+
+            // 次の質問ページへ移動
+            window.location.href = 'q2.html';
+        });
+    </script>
+
+</body>
+</html>
