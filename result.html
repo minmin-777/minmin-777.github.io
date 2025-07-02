@@ -263,7 +263,21 @@
 
             const tweetButton = document.getElementById('tweet-button');
             const siteUrl = 'https://minmin-777.github.io/';
-            const tweetText = `私のは婚活市場価値は【${totalScore} / 1000点】でした！\nあなたも自分の市場価値を診断してみよう！\n\n#婚活市場価値スコア診断\n`;
+            
+            // 各項目のスコアを含めた、より詳細なテキストを作成
+            const tweetText = `私の婚活市場価値スコアは【${totalScore} / 1000点】でした！
+
+💪基礎能力: ${scores.basic}
+💼経済力: ${scores.economic}
+❤️内面性: ${scores.personality}
+🏠生活力: ${scores.life}
+🌱将来性: ${scores.future}
+(各200点満点)
+
+あなたも診断してみよう！
+#婚活市場価値スコア診断
+`;
+            
             const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
             tweetButton.href = tweetUrl;
         }
