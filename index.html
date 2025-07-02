@@ -22,3 +22,18 @@
 </form>
 
 <h2 id="result-area"></h2>
+
+<script>
+    function calculateScore() {
+        // 各質問の回答の値を取得
+        const score1 = parseInt(document.getElementById('q1').value);
+        const score2 = parseInt(document.getElementById('q2').value);
+
+        // 合計スコアを計算
+        const totalScore = score1 + score2;
+
+        // 結果を表示
+        const resultArea = document.getElementById('result-area');
+        resultArea.innerText = 'あなたの優良物件度数は ' + totalScore + ' 点です！';
+    }
+</script>
