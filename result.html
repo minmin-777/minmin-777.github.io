@@ -1,228 +1,195 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>診断結果 | 未来設計力スコア診断</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary-color: #555;
-            --secondary-color: #f4f7f9;
-        }
-        body.male-theme { --primary-color: #3498db; }
-        body.female-theme { --primary-color: #e91e63; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
-            background-color: var(--secondary-color);
-            color: #333;
-            margin: 0;
-            padding: 2em;
-        }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 2em 2.5em;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        }
-        h1, h2 { text-align: center; }
-        h1 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.5em;
-        }
-        #total-score {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-        .chart-container {
-            position: relative;
-            width: 90%;
-            max-width: 500px;
-            margin: 2em auto;
-        }
-        .analysis-section {
-            margin-top: 3em;
-        }
-        .category-analysis {
-            background-color: #fdfdfd;
-            border: 1px solid #eee;
-            border-left: 5px solid var(--primary-color);
-            padding: 1.5em;
-            margin-bottom: 1.5em;
-            border-radius: 8px;
-        }
-        .category-analysis h3 {
-            margin-top: 0;
-            font-size: 1.3em;
-        }
-        .retry-button {
-            display: block;
-            width: 80%;
-            max-width: 400px;
-            margin: 3em auto 1em auto;
-            padding: 15px;
-            background-color: #777;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-        }
-        .retry-button:hover { opacity: 0.9; }
-        #error-message {
-            color: red;
-            text-align: center;
-            font-weight: bold;
-            display: none; /* 通常は非表示 */
-        }
-    </style>
-</head>
-<body>
+<script>
+    // --- ここからが新しい診断ロジックの心臓部 ---
+    window.addEventListener('DOMContentLoaded', function() {
+        try {
+            // 1. localStorageから全てのデータを取得
+            const gender = localStorage.getItem('gender');
+            const q1 = JSON.parse(localStorage.getItem('q1_data'));
+            const q2 = JSON.parse(localStorage.getItem('q2_data'));
+            const q3 = JSON.parse(localStorage.getItem('q3_data'));
+            const q4 = JSON.parse(localStorage.getItem('q4_data'));
+            const q5 = JSON.parse(localStorage.getItem('q5_data'));
 
-    <div class="container">
-        <h1>診断結果</h1>
+            if (!gender || !q1 || !q2 || !q3 || !q4 || !q5) {
+                throw new Error('データが不完全です');
+            }
+            
+            document.body.classList.add(gender + '-theme');
 
-        <div id="results-content">
-            <h2>あなたの総合スコアは <span id="total-score">...</span> / 1000 点です</h2>
-            <div class="chart-container">
-                <canvas id="radarChart"></canvas>
-            </div>
-            <div id="analysis-container" class="analysis-section">
-                </div>
-        </div>
+            // --- 2. スコア計算 ---
+            const scores = calculateAllScores(gender, q1, q2, q3, q4, q5);
 
-        <div id="error-message">
-            <p>診断データが不足しています。<br>お手数ですが、トップページから診断をやり直してください。</p>
-        </div>
+            // 3. 総合点を計算し、画面に表示
+            const totalScore = Object.values(scores).reduce((sum, current) => sum + current, 0);
+            document.getElementById('total-score').textContent = totalScore;
+            
+            // 4. レーダーチャートを描画
+            drawRadarChart(scores);
 
-        <a href="index.html" class="retry-button">もう一度診断する</a>
-    </div>
+            // 5. 詳細な分析結果を表示
+            displayAnalysis(scores);
 
-    <script>
-        // --- ここからが診断ロジックの心臓部 ---
-        window.addEventListener('DOMContentLoaded', function() {
-            try {
-                // 1. localStorageから全てのデータを取得
-                const gender = localStorage.getItem('gender');
-                const q1 = JSON.parse(localStorage.getItem('q1_data'));
-                const q2 = JSON.parse(localStorage.getItem('q2_data'));
-                const q3 = JSON.parse(localStorage.getItem('q3_data'));
-                const q4 = JSON.parse(localStorage.getItem('q4_data'));
-                const q5 = JSON.parse(localStorage.getItem('q5_data'));
+        } catch (error) {
+            console.error(error);
+            document.getElementById('results-content').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+        }
+    });
 
-                // データが一つでも欠けていたらエラー表示
-                if (!gender || !q1 || !q2 || !q3 || !q4 || !q5) {
-                    throw new Error('データが不完全です');
-                }
-                
-                // 2. テーマカラーを設定
-                document.body.classList.add(gender + '-theme');
+    // スコア計算のメイン関数
+    function calculateAllScores(gender, q1, q2, q3, q4, q5) {
+        let baseScores = {};
 
-                // 3. スコアを計算
-                let scores = {};
-                // 各カテゴリの基本スコアを計算 (簡易的な例)
-                // 本来はここでもっと複雑な統計モデルに基づいた計算を行う
-                scores.basic = (parseInt(q1.height) - 165) + (40 - Math.abs(30 - parseInt(q1.age))) * 2; // 身長と年齢
-                scores.economic = parseInt(q2.income) / 100 + (q2.occupation === 'specialist' ? 20 : 0);
-                scores.personality = (q3.q1_interest === 'e' ? 10 : 5) + (q3.q3_decision === 'f' ? 10 : 5) + (q3.q7_self_esteem === 'confident' ? 10 : 5);
-                scores.life = (parseInt(q4.living_alone) * 2) + (q4.cooking_freq === 'daily' ? 20 : 10) - (q4.brand_goods === 'often' ? 10 : 0);
-                scores.future = parseInt(q5.savings) / 100 + (q5.chores === 'active' ? 20 : 10);
+        // カテゴリごとの基礎点を計算
+        baseScores.basic = calculateBasicScore(gender, q1);
+        baseScores.economic = calculateEconomicScore(gender, q1, q2);
+        baseScores.personality = calculatePersonalityScore(q3);
+        baseScores.life = calculateLifeScore(q1, q4);
+        baseScores.future = calculateFutureScore(gender, q5);
+        
+        // 各スコアを200点満点に正規化（スケール調整）
+        const normalize = (score) => Math.min(Math.max(Math.round(score), 20), 200);
+        let finalScores = {
+            basic: normalize(baseScores.basic),
+            economic: normalize(baseScores.economic),
+            personality: normalize(baseScores.personality),
+            life: normalize(baseScores.life),
+            future: normalize(baseScores.future),
+        };
 
-                // 4. 性別によるスコア比重の変更
-                if (gender === 'male') {
-                    scores.economic *= 1.5;  // 経済力を重視
-                    scores.future *= 1.5;    // 将来性を重視
-                    scores.personality *= 0.7;
-                    scores.life *= 0.7;
-                } else { // female
-                    scores.personality *= 1.5; // 内面性を重視
-                    scores.life *= 1.5;      // 生活力を重視
-                    scores.economic *= 0.7;
-                    scores.future *= 0.7;
-                }
-                
-                // 5. 各スコアを200点満点に正規化（スケール調整）
-                // NOTE: この正規化関数は実際のスコア分布を見て調整する必要がある
-                const normalize = (score) => Math.min(Math.max(Math.round(score * 1.8), 20), 200);
-                let finalScores = {
-                    basic: normalize(scores.basic),
-                    economic: normalize(scores.economic),
-                    personality: normalize(scores.personality),
-                    life: normalize(scores.life),
-                    future: normalize(scores.future),
-                };
-                
-                // 6. 総合点を計算し、画面に表示
-                const totalScore = Object.values(finalScores).reduce((sum, current) => sum + current, 0);
-                document.getElementById('total-score').textContent = totalScore;
-                
-                // 7. レーダーチャートを描画
-                drawRadarChart(finalScores);
+        return finalScores;
+    }
 
-                // 8. 詳細な分析結果を表示
-                displayAnalysis(finalScores);
+    // --- 各カテゴリの計算関数 ---
 
-            } catch (error) {
-                // エラーが発生した場合（データ不足など）
-                console.error(error);
-                document.getElementById('results-content').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
+    function calculateBasicScore(gender, q1) {
+        let score = 50;
+        const height = parseInt(q1.height);
+        const age = parseInt(q1.age);
+
+        // 身長スコア
+        if (gender === 'male') {
+            if (height >= 170) score += (height - 170) * 5 + 30;
+        } else { // female
+            if (height > 170) score -= 50;
+            else score += 30 - Math.abs(158 - height) * 2;
+        }
+
+        // 年齢スコア
+        const peakAge = (gender === 'male') ? 30 : 27;
+        score += 50 - Math.abs(peakAge - age) * 3;
+
+        return score;
+    }
+
+    function calculateEconomicScore(gender, q1, q2) {
+        let score = 20;
+        const age = parseInt(q1.age);
+        const income = parseInt(q2.income);
+
+        // 年代別平均年収モデル（簡易版）
+        const avgIncome = { '20s': 350, '30s': 450, '40s': 550, '50s': 650 };
+        let ageGroup = '20s';
+        if (age >= 50) ageGroup = '50s';
+        else if (age >= 40) ageGroup = '40s';
+        else if (age >= 30) ageGroup = '30s';
+
+        // 年収の乖離を計算
+        const deviation = income - avgIncome[ageGroup];
+        const incomeFactor = (gender === 'male') ? 15 : 2; // 男性の年収の影響を大きく
+        score += deviation * incomeFactor;
+
+        return score;
+    }
+
+    function calculatePersonalityScore(q3) {
+        let score = 80; // 基礎点を80に設定
+        if (q3.q1_interest === 'e') score += 5;
+        if (q3.q3_decision === 'f') score += 5;
+        if (q3.q5_stress === 'calm') score += 5;
+        if (q3.q6_challenge === 'challenge') score += 5;
+        if (q3.q7_self_esteem === 'confident') score += 5;
+        return score;
+    }
+
+    function calculateLifeScore(q1, q4) {
+        let score = 20;
+        const age = parseInt(q1.age);
+        const livingAloneYears = parseInt(q4.living_alone);
+
+        // 一人暮らし経験
+        const workingYears = Math.max(1, age - 22); // 社会人年数（最低1年）
+        const livingRatio = livingAloneYears / workingYears;
+        score += livingRatio * 50;
+
+        // その他
+        const cookingScore = {'daily': 30, 'often': 20, 'sometimes': 10, 'rarely': 0};
+        score += cookingScore[q4.cooking_freq];
+        if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') score -= 20;
+
+        return score;
+    }
+
+    function calculateFutureScore(gender, q5) {
+        let score = 20;
+        const savings = parseInt(q5.savings);
+
+        // 貯金額
+        const savingsFactor = (gender === 'male') ? 1.5 : 0.2; // 男性の貯金の影響を大きく
+        score += savings / 10 * savingsFactor;
+
+        // その他
+        if (q5.assets === 'yes') score += 20;
+        if (q5.chores === 'active') score += 30;
+
+        return score;
+    }
+
+    // --- 描画・表示用の関数 (変更なし) ---
+    function drawRadarChart(scores) {
+        // (この部分は前のコードと同じなので省略)
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['基礎能力', '経済力', '内面性', '生活力', '将来性'],
+                datasets: [{
+                    label: 'あなたのスコア',
+                    data: Object.values(scores),
+                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                    borderColor: 'rgba(52, 152, 219, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(52, 152, 219, 1)'
+                }]
+            },
+            options: {
+                scales: { r: { beginAtZero: true, max: 200 } },
+                plugins: { legend: { display: false } }
             }
         });
+    }
+    
+    function displayAnalysis(scores) {
+        // (この部分は前のコードと同じなので省略)
+        const container = document.getElementById('analysis-container');
+        container.innerHTML = ''; // コンテナを初期化
+        const analysisData = {
+            basic: { title: '基礎能力', score: scores.basic, text: scores.basic > 120 ? '身体的・知的能力の基盤がしっかりしています。' : '基礎能力にはまだ伸びしろがありそうです。' },
+            economic: { title: '経済力とキャリア', score: scores.economic, text: scores.economic > 120 ? '安定した経済基盤とキャリアを築いています。' : 'キャリアアップにより更なる安定が見込めます。' },
+            personality: { title: '内面性', score: scores.personality, text: scores.personality > 120 ? '非常に魅力的でバランスの取れた内面性を持っています。' : '自分らしい魅力をさらに探求する楽しみがあります。' },
+            life: { title: '生活力', score: scores.life, text: scores.life > 120 ? '自立した豊かな生活を送るスキルが非常に高いです。' : '日々のスキルアップで生活がもっと豊かになります。' },
+            future: { title: '将来性', score: scores.future, text: scores.future > 120 ? '将来を見据えた計画性とビジョンを持っています。' : '長期的な視点を持つことで、可能性は無限に広がります。' }
+        };
 
-        // レーダーチャート描画関数
-        function drawRadarChart(scores) {
-            const ctx = document.getElementById('radarChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['基礎能力', '経済力', '内面性', '生活力', '将来性'],
-                    datasets: [{
-                        label: 'あなたのスコア',
-                        data: Object.values(scores),
-                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(52, 152, 219, 1)'
-                    }]
-                },
-                options: {
-                    scales: { r: { beginAtZero: true, max: 200 } },
-                    plugins: { legend: { display: false } }
-                }
-            });
+        for (const key in analysisData) {
+            const item = analysisData[key];
+            const analysisHtml = `
+                <div class="category-analysis">
+                    <h3>${item.title} <span style="font-size:0.8em; color: #555;">(${item.score} / 200)</span></h3>
+                    <p>${item.text}</p>
+                </div>
+            `;
+            container.innerHTML += analysisHtml;
         }
-        
-        // 詳細な分析結果表示関数
-        function displayAnalysis(scores) {
-            const container = document.getElementById('analysis-container');
-            const analysisData = {
-                basic: { title: '基礎能力', score: scores.basic, text: scores.basic > 120 ? '身体的・知的能力の基盤がしっかりしています。' : '基礎能力にはまだ伸びしろがありそうです。' },
-                economic: { title: '経済力とキャリア', score: scores.economic, text: scores.economic > 120 ? '安定した経済基盤とキャリアを築いています。' : 'キャリアアップにより更なる安定が見込めます。' },
-                personality: { title: '内面性', score: scores.personality, text: scores.personality > 120 ? '非常に魅力的でバランスの取れた内面性を持っています。' : '自分らしい魅力をさらに探求する楽しみがあります。' },
-                life: { title: '生活力', score: scores.life, text: scores.life > 120 ? '自立した豊かな生活を送るスキルが非常に高いです。' : '日々のスキルアップで生活がもっと豊かになります。' },
-                future: { title: '将来性', score: scores.future, text: scores.future > 120 ? '将来を見据えた計画性とビジョンを持っています。' : '長期的な視点を持つことで、可能性は無限に広がります。' }
-            };
-
-            for (const key in analysisData) {
-                const item = analysisData[key];
-                const analysisHtml = `
-                    <div class="category-analysis">
-                        <h3>${item.title} <span style="font-size:0.8em; color: #555;">(${item.score} / 200)</span></h3>
-                        <p>${item.text}</p>
-                    </div>
-                `;
-                container.innerHTML += analysisHtml;
-            }
-        }
-
-    </script>
-</body>
-</html>
+    }
+</script>
