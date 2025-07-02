@@ -4,3 +4,51 @@
 
 <h3 id="result-type"></h3>
 <p id="result-description"></p>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 仮のデータ（実際はquiz.htmlから受け取る）
+    const scores = {
+        sincerity: 5,     // 誠実さ
+        selfCare: 8,      // 自己管理力
+        compassion: 9,    // 思いやり力
+        dialogue: 6,      // 対話力
+        growth: 7         // 成長力
+    };
+
+    // --- ここに、スコアからタイプ名やアドバイスを決定するロジックを書く ---
+    document.getElementById('result-type').innerText = '心優しいサポータータイプ';
+    document.getElementById('result-description').innerText = 'あなたは人の気持ちに寄り添うのが得意で、周りの人を安心させる力があります。素晴らしいですね！対話力として、自分の意見を優しく伝える練習をすると、さらに素敵な関係が築けますよ。';
+
+
+    // --- ここからレーダーチャートの描画 ---
+    const ctx = document.getElementById('myRadarChart').getContext('2d');
+    const myRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['誠実さ', '自己管理力', '思いやり力', '対話力', '成長力'],
+            datasets: [{
+                label: 'あなたのポテンシャル',
+                data: [
+                    scores.sincerity,
+                    scores.selfCare,
+                    scores.compassion,
+                    scores.dialogue,
+                    scores.growth
+                ],
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    angleLines: { display: true },
+                    suggestedMin: 0,
+                    suggestedMax: 10 // 満点を10と仮定
+                }
+            }
+        }
+    });
+</script>
