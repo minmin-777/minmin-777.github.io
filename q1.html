@@ -98,6 +98,11 @@
             </div>
 
             <div class="question-group">
+                <label for="weight">体重 (kg)</label>
+                <input type="number" id="weight" step="0.1" placeholder="例: 65.0" required>
+            </div>
+            
+            <div class="question-group">
                 <label for="age">年齢</label>
                 <input type="number" id="age" placeholder="例: 28" required>
             </div>
@@ -179,6 +184,7 @@
             // 回答データをオブジェクトにまとめる
             const q1_data = {
                 height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
                 age: document.getElementById('age').value,
                 family: document.querySelector('input[name="family"]:checked').value,
                 education: document.getElementById('education').value,
