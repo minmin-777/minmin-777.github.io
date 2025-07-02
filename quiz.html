@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>診断ページ | 人間関係ポテンシャル診断</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f9f9f9; }
+        .container { max-width: 650px; margin: 2em auto; background-color: white; padding: 2em; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        h1, h2 { text-align: center; }
+        fieldset { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1.5em; padding: 1.5em; }
+        legend { font-weight: bold; font-size: 1.2em; color: #28a745; padding: 0 0.5em; }
+        .question { margin-bottom: 1em; }
+        label { display: block; margin-bottom: 0.5em; font-weight: bold; }
+        .options label { display: inline-block; margin-right: 1em; font-weight: normal;}
+        .submit-button { display: block; width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 1.2em; cursor: pointer; }
+        .submit-button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>診断をはじめます</h1>
+        <p style="text-align: center;">各質問に最も近いものを正直に選んでください。</p>
+
+        <form id="quiz-form">
+            <fieldset>
+                <legend>【誠実さ】信頼の基礎力</legend>
+                <div class="question">
+                    <label>Q1. 約束の時間に遅れそうな時、早めに連絡を入れるようにしている</label>
+                    <div class="options">
+                        <label><input type="radio" name="q1" value="2" required> はい</label>
+                        <label><input type="radio" name="q1" value="1"> ときどき</label>
+                        <label><input type="radio" name="q1" value="0"> いいえ</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>【自己管理力】心と生活の安定</legend>
+                 <div class="question">
+                    <label>Q2. 部屋やデスク周りは、定期的に片付けている</label>
+                    <div class="options">
+                        <label><input type="radio" name="q2" value="2" required> はい</label>
+                        <label><input type="radio" name="q2" value="1"> ときどき</label>
+                        <label><input type="radio" name="q2" value="0"> いいえ</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>【思いやり力】共感と優しさ</legend>
+                <div class="question">
+                    <label>Q3. コンビニの店員さんや配達員さんなどにも「ありがとう」を伝える</label>
+                    <div class="options">
+                        <label><input type="radio" name="q3" value="2" required> はい</label>
+                        <label><input type="radio" name="q3" value="1"> ときどき</label>
+                        <label><input type="radio" name="q3" value="0"> いいえ</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>【対話力】コミュニケーションの質</legend>
+                 <div class="question">
+                    <label>Q4. 相手が話している時、途中で遮らずに最後まで聞くことが得意だ</label>
+                    <div class="options">
+                        <label><input type="radio" name="q4" value="2" required> はい</label>
+                        <label><input type="radio" name="q4" value="1"> ときどき</label>
+                        <label><input type="radio" name="q4" value="0"> いいえ</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>【成長力】未来へのポテンシャル</legend>
+                <div class="question">
+                    <label>Q5. 新しい知識を得たり、やったことのない事に挑戦したりするのが好きだ</label>
+                     <div class="options">
+                        <label><input type="radio" name="q5" value="2" required> はい</label>
+                        <label><input type="radio" name="q5" value="1"> ときどき</label>
+                        <label><input type="radio" name="q5" value="0"> いいえ</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button type="submit" class="submit-button">診断する</button>
+        </form>
+    </div>
+
+    <script>
+        // formが送信された時の処理
+        document.getElementById('quiz-form').addEventListener('submit', function(event) {
+            // ページがリロードされるのを防ぐ
+            event.preventDefault();
+
+            // 各カテゴリのスコアを計算（今回は1問ずつなので、そのまま値を取得）
+            const sincerity = parseInt(document.querySelector('input[name="q1"]:checked').value);
+            const selfCare = parseInt(document.querySelector('input[name="q2"]:checked').value);
+            const compassion = parseInt(document.querySelector('input[name="q3"]:checked').value);
+            const dialogue = parseInt(document.querySelector('input[name="q4"]:checked').value);
+            const growth = parseInt(document.querySelector('input[name="q5"]:checked').value);
+
+            // result.htmlに渡すためのURLを作成
+            const resultUrl = `result.html?sincerity=${sincerity}&selfCare=${selfCare}&compassion=${compassion}&dialogue=${dialogue}&growth=${growth}`;
+
+            // 結果ページに移動
+            window.location.href = resultUrl;
+        });
+    </script>
+
+</body>
+</html>
