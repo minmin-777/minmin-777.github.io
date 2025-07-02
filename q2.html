@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. 経済力とキャリア | 未来設計力スコア診断</title>
+    <style>
+        /* q1.htmlと同じスタイルを再利用 */
+        :root {
+            --primary-color: #555;
+            --secondary-color: #f4f7f9;
+        }
+        body.male-theme { --primary-color: #3498db; }
+        body.female-theme { --primary-color: #e91e63; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1.5em;
+        }
+        .question-group { margin-bottom: 2em; }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .submit-button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>2. 経済力とキャリア</h1>
+        <form id="q2-form">
+            <div class="question-group">
+                <label for="income">個人年収</label>
+                <select id="income" required>
+                    <option value="">選択してください</option>
+                    <option value="300">〜300万円</option>
+                    <option value="500">301〜500万円</option>
+                    <option value="700">501〜700万円</option>
+                    <option value="1000">701〜1000万円</option>
+                    <option value="1500">1001〜1500万円</option>
+                    <option value="1501">1501万円以上</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label for="occupation">職種</label>
+                <select id="occupation" required>
+                    <option value="">選択してください</option>
+                    <option value="management">経営者・役員</option>
+                    <option value="specialist">専門職（医師,弁護士,会計士など）</option>
+                    <option value="it">ITエンジニア・クリエイター</option>
+                    <option value="office">会社員（事務・企画）</option>
+                    <option value="sales">会社員（営業）</option>
+                    <option value="public">公務員</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label for="position">役職</label>
+                <select id="position" required>
+                    <option value="">選択してください</option>
+                    <option value="none">役職なし</option>
+                    <option value="leader">主任・リーダー・係長</option>
+                    <option value="manager">課長・マネージャー</option>
+                    <option value="director">部長・ディレクター以上</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label for="company-size">企業規模</label>
+                <select id="company-size" required>
+                    <option value="">選択してください</option>
+                    <option value="large">5000人以上</option>
+                    <option value="medium-large">1001〜4999人</option>
+                    <option value="medium">301〜1000人</option>
+                    <option value="small">300人以下</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label for="work-location">勤務地</label>
+                <select id="work-location" required>
+                    <option value="">選択してください</option>
+                    <option value="tokyo23">東京23区</option>
+                    <option value="major-city">政令指定都市</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-button">次へ進む</button>
+        </form>
+    </div>
+
+    <script>
+        // --- ページ読み込み時の処理 ---
+        window.addEventListener('DOMContentLoaded', function() {
+            // localStorageから性別情報を取得し、テーマカラーを適用
+            const gender = localStorage.getItem('gender');
+            if (gender) {
+                document.body.classList.add(gender + '-theme');
+            }
+        });
+
+        // --- 「次へ進む」ボタンが押された時の処理 ---
+        document.getElementById('q2-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // ページの再読み込みを防止
+
+            // 回答データをオブジェクトにまとめる
+            const q2_data = {
+                income: document.getElementById('income').value,
+                occupation: document.getElementById('occupation').value,
+                position: document.getElementById('position').value,
+                company_size: document.getElementById('company-size').value,
+                work_location: document.getElementById('work-location').value,
+            };
+
+            // localStorageに回答データを保存
+            localStorage.setItem('q2_data', JSON.stringify(q2_data));
+
+            // 次の質問ページへ移動
+            window.location.href = 'q3.html';
+        });
+    </script>
+
+</body>
+</html>
