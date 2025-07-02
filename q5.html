@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5. 将来性 | 未来設計力スコア診断</title>
+    <style>
+        /* これまでのページと同じスタイルを再利用 */
+        :root {
+            --primary-color: #555;
+            --secondary-color: #f4f7f9;
+        }
+        body.male-theme { --primary-color: #3498db; }
+        body.female-theme { --primary-color: #e91e63; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1.5em;
+        }
+        .question-group { margin-bottom: 2em; }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .radio-options label {
+            display: inline-block;
+            margin-right: 1.5em;
+            font-weight: normal;
+        }
+        .radio-options input { margin-right: 0.4em; }
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .submit-button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>5. 将来性 - 未来を共に描く力</h1>
+        <form id="q5-form">
+            <div class="question-group">
+                <label for="savings">現在の貯金額</label>
+                <select id="savings" required>
+                    <option value="">選択してください</option>
+                    <option value="100">〜100万円</option>
+                    <option value="300">101〜300万円</option>
+                    <option value="500">301〜500万円</option>
+                    <option value="1000">501〜1000万円</option>
+                    <option value="1001">1001万円以上</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label>金融資産（株式・投資信託など）はありますか？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="assets" value="yes" required> はい</label>
+                    <label><input type="radio" name="assets" value="no"> いいえ</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label for="partner-work">パートナーの働き方についてどう考えますか？</label>
+                <select id="partner-work" required>
+                    <option value="">選択してください</option>
+                    <option value="dual">共働きが良い</option>
+                    <option value="single">自分が稼ぐので専業主婦(主夫)でも良い</option>
+                    <option value="respect">相手の意思を尊重する</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label>将来、子供は欲しいですか？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="wants-children" value="yes" required> はい</label>
+                    <label><input type="radio" name="wants-children" value="no"> いいえ</label>
+                    <label><input type="radio" name="wants-children" value="either"> どちらでも良い</label>
+                </div>
+            </div>
+            
+            <div class="question-group">
+                <label>家事や育児の分担についてどう考えますか？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="chores" value="active" required> 積極的に分担したい</label>
+                    <label><input type="radio" name="chores" value="cooperate"> できる範囲で協力したい</label>
+                    <label><input type="radio" name="chores" value="not_confident"> あまり自信がない</label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">結果を見る</button>
+        </form>
+    </div>
+
+    <script>
+        // --- ページ読み込み時の処理 ---
+        window.addEventListener('DOMContentLoaded', function() {
+            const gender = localStorage.getItem('gender');
+            if (gender) {
+                document.body.classList.add(gender + '-theme');
+            }
+        });
+
+        // --- 「結果を見る」ボタンが押された時の処理 ---
+        document.getElementById('q5-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 回答データをオブジェクトにまとめる
+            const q5_data = {
+                savings: document.getElementById('savings').value,
+                assets: document.querySelector('input[name="assets"]:checked').value,
+                partner_work: document.getElementById('partner-work').value,
+                wants_children: document.querySelector('input[name="wants-children"]:checked').value,
+                chores: document.querySelector('input[name="chores"]:checked').value,
+            };
+
+            // localStorageに回答データを保存
+            localStorage.setItem('q5_data', JSON.stringify(q5_data));
+
+            // 結果ページへ移動
+            window.location.href = 'result.html';
+        });
+    </script>
+
+</body>
+</html>
