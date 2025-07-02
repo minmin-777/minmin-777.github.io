@@ -1,54 +1,100 @@
-<h2>あなたの診断結果</h2>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>診断結果 | 人間関係ポテンシャル診断</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 2em; }
+        .container { max-width: 650px; margin: auto; }
+        .chart-container {
+            position: relative;
+            width: 90%; /* 画面幅に対する割合 */
+            max-width: 500px; /* 最大の横幅 */
+            margin: 2em auto; /* 中央寄せ */
+        }
+        #result-type { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>あなたの診断結果</h2>
 
-<canvas id="myRadarChart" width="400" height="400"></canvas>
+        <div class="chart-container">
+            <canvas id="myRadarChart"></canvas>
+        </div>
 
-<h3 id="result-type"></h3>
-<p id="result-description"></p>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <h3 id="result-type"></h3>
+        <p id="result-description"></p>
+        
+        <a href="index.html">もう一度診断する</a>
+    </div>
 
-<script>
-    // 仮のデータ（実際はquiz.htmlから受け取る）
-    const scores = {
-        sincerity: 5,     // 誠実さ
-        selfCare: 8,      // 自己管理力
-        compassion: 9,    // 思いやり力
-        dialogue: 6,      // 対話力
-        growth: 7         // 成長力
-    };
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    // --- ここに、スコアからタイプ名やアドバイスを決定するロジックを書く ---
-    document.getElementById('result-type').innerText = '心優しいサポータータイプ';
-    document.getElementById('result-description').innerText = 'あなたは人の気持ちに寄り添うのが得意で、周りの人を安心させる力があります。素晴らしいですね！対話力として、自分の意見を優しく伝える練習をすると、さらに素敵な関係が築けますよ。';
+    <script>
+        // URLからスコアデータを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const scores = {
+            sincerity: parseInt(urlParams.get('sincerity')) || 0,
+            selfCare: parseInt(urlParams.get('selfCare')) || 0,
+            compassion: parseInt(urlParams.get('compassion')) || 0,
+            dialogue: parseInt(urlParams.get('dialogue')) || 0,
+            growth: parseInt(urlParams.get('growth')) || 0
+        };
 
+        // --- ここに、スコアからタイプ名やアドバイスを決定するロジックを書く ---
+        // (例：思いやりが一番高い場合)
+        if (scores.compassion >= 2) {
+            document.getElementById('result-type').innerText = '心優しいサポータータイプ';
+            document.getElementById('result-description').innerText = 'あなたは人の気持ちに寄り添うのが得意で、周りの人を安心させる力があります。素晴らしいですね！対話力として、自分の意見を優しく伝える練習をすると、さらに素敵な関係が築けますよ。';
+        } else {
+            document.getElementById('result-type').innerText = '冷静な分析家タイプ';
+            document.getElementById('result-description').innerText = 'あなたは物事を客観的に捉える力があります。素晴らしいですね！思いやりの項目として、相手の気持ちを想像する時間を少し作ると、人間関係がより豊かになりますよ。';
+        }
 
-    // --- ここからレーダーチャートの描画 ---
-    const ctx = document.getElementById('myRadarChart').getContext('2d');
-    const myRadarChart = new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: ['誠実さ', '自己管理力', '思いやり力', '対話力', '成長力'],
-            datasets: [{
-                label: 'あなたのポテンシャル',
-                data: [
-                    scores.sincerity,
-                    scores.selfCare,
-                    scores.compassion,
-                    scores.dialogue,
-                    scores.growth
-                ],
-                backgroundColor: 'rgba(40, 167, 69, 0.2)',
-                borderColor: 'rgba(40, 167, 69, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                r: {
-                    angleLines: { display: true },
-                    suggestedMin: 0,
-                    suggestedMax: 10 // 満点を10と仮定
+        // --- ここからレーダーチャートの描画 ---
+        const ctx = document.getElementById('myRadarChart').getContext('2d');
+        const myRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['誠実さ', '自己管理力', '思いやり力', '対話力', '成長力'],
+                datasets: [{
+                    label: 'あなたのポテンシャル',
+                    data: [
+                        scores.sincerity * 5, // 2点満点を10点満点に換算
+                        scores.selfCare * 5,
+                        scores.compassion * 5,
+                        scores.dialogue * 5,
+                        scores.growth * 5
+                    ],
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(40, 167, 69, 1)'
+                }]
+            },
+            options: {
+                responsive: true, // サイズの自動調整
+                maintainAspectRatio: true, // アスペクト比を維持
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 10, // 満点を10に設定
+                        pointLabels: {
+                            font: {
+                                size: 14 // ラベルの文字サイズ
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // 「あなたのポテンシャル」というラベルを非表示に
+                    }
                 }
             }
-        }
-    });
-</script>
+        });
+    </script>
+</body>
+</html>
