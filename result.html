@@ -1,190 +1,303 @@
-<script>
-    // --- ここからがデバッグ機能付きの新しい診断ロジック ---
-    window.addEventListener('DOMContentLoaded', function() {
-        console.log('診断結果ページの処理を開始します。');
-        try {
-            // 1. localStorageから全てのデータを取得し、コンソールに表示
-            console.log('localStorageからデータを取得します...');
-            const gender = localStorage.getItem('gender');
-            console.log('gender:', gender);
-            
-            const q1 = JSON.parse(localStorage.getItem('q1_data'));
-            console.log('q1_data:', q1);
-
-            const q2 = JSON.parse(localStorage.getItem('q2_data'));
-            console.log('q2_data:', q2);
-
-            const q3 = JSON.parse(localStorage.getItem('q3_data'));
-            console.log('q3_data:', q3);
-
-            const q4 = JSON.parse(localStorage.getItem('q4_data'));
-            console.log('q4_data:', q4);
-
-            const q5 = JSON.parse(localStorage.getItem('q5_data'));
-            console.log('q5_data:', q5);
-
-            // データが一つでも欠けていたらエラー表示
-            if (!gender || !q1 || !q2 || !q3 || !q4 || !q5) {
-                throw new Error('データが不完全です。いずれかのデータがnullです。');
-            }
-            console.log('全てのデータが正常に読み込まれました。');
-            
-            // 2. テーマカラーを設定
-            document.body.classList.add(gender + '-theme');
-            console.log(gender + '-theme を適用しました。');
-
-            // 3. スコア計算
-            console.log('スコア計算を開始します...');
-            const scores = calculateAllScores(gender, q1, q2, q3, q4, q5);
-            console.log('最終スコア:', scores);
-
-            // 4. 総合点を計算し、画面に表示
-            const totalScore = Object.values(scores).reduce((sum, current) => sum + current, 0);
-            document.getElementById('total-score').textContent = totalScore;
-            console.log('総合スコアを表示しました:', totalScore);
-            
-            // 5. レーダーチャートを描画
-            console.log('レーダーチャートを描画します...');
-            drawRadarChart(scores);
-            console.log('レーダーチャートを描画しました。');
-
-            // 6. 詳細な分析結果を表示
-            console.log('詳細な分析結果を表示します...');
-            displayAnalysis(scores);
-            console.log('詳細な分析結果を表示しました。');
-
-        } catch (error) {
-            // tryの中でエラーが起きたら、ここが実行される
-            console.error('エラーが発生しました。処理を中断します。', error);
-            // ユーザーにはエラーメッセージを表示
-            document.getElementById('results-content').style.display = 'none';
-            document.getElementById('error-message').style.display = 'block';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>診断結果 | 未来設計力スコア診断</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #555;
+            --secondary-color: #f4f7f9;
         }
-    });
-
-    // --- ここから下の計算関数は変更ありません ---
-
-    function calculateAllScores(gender, q1, q2, q3, q4, q5) {
-        let baseScores = {};
-        baseScores.basic = calculateBasicScore(gender, q1);
-        baseScores.economic = calculateEconomicScore(gender, q1, q2);
-        baseScores.personality = calculatePersonalityScore(q3);
-        baseScores.life = calculateLifeScore(q1, q4);
-        baseScores.future = calculateFutureScore(gender, q5);
-        
-        const normalize = (score) => Math.min(Math.max(Math.round(score), 20), 200);
-        let finalScores = {
-            basic: normalize(baseScores.basic),
-            economic: normalize(baseScores.economic),
-            personality: normalize(baseScores.personality),
-            life: normalize(baseScores.life),
-            future: normalize(baseScores.future),
-        };
-        return finalScores;
-    }
-
-    function calculateBasicScore(gender, q1) {
-        let score = 50;
-        const height = parseInt(q1.height) || (gender === 'male' ? 171 : 158);
-        const weight = parseFloat(q1.weight) || (gender === 'male' ? 66 : 53);
-        const age = parseInt(q1.age) || 30;
-        if (height > 0) {
-            const heightInMeters = height / 100;
-            const bmi = weight / (heightInMeters * heightInMeters);
-            const bmiScore = 60 - (Math.abs(22 - bmi) * 5);
-            score += Math.max(0, bmiScore);
+        body.male-theme { --primary-color: #3498db; }
+        body.female-theme { --primary-color: #e91e63; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
         }
-        const peakAge = (gender === 'male') ? 30 : 27;
-        score += 50 - Math.abs(peakAge - age) * 3;
-        return score;
-    }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1, h2 { text-align: center; }
+        h1 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+        }
+        #total-score {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .chart-container {
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+            margin: 2em auto;
+        }
+        .analysis-section {
+            margin-top: 3em;
+        }
+        .category-analysis {
+            background-color: #fdfdfd;
+            border: 1px solid #eee;
+            border-left: 5px solid var(--primary-color);
+            padding: 1.5em;
+            margin-bottom: 1.5em;
+            border-radius: 8px;
+        }
+        .category-analysis h3 {
+            margin-top: 0;
+            font-size: 1.3em;
+        }
+        .retry-button {
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 3em auto 1em auto;
+            padding: 15px;
+            background-color: #777;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .retry-button:hover { opacity: 0.9; }
+        #error-message {
+            color: red;
+            text-align: center;
+            font-weight: bold;
+            display: none; /* 通常は非表示 */
+        }
+    </style>
+</head>
+<body>
 
-    function calculateEconomicScore(gender, q1, q2) {
-        let score = 20;
-        const age = parseInt(q1.age) || 30;
-        const income = parseInt(q2.income) || 450;
-        const avgIncome = { '20s': 350, '30s': 450, '40s': 550, '50s': 650 };
-        let ageGroup = '20s';
-        if (age >= 50) ageGroup = '50s';
-        else if (age >= 40) ageGroup = '40s';
-        else if (age >= 30) ageGroup = '30s';
-        const deviation = income - avgIncome[ageGroup];
-        const incomeFactor = (gender === 'male') ? 15 : 2;
-        score += deviation * incomeFactor;
-        return score;
-    }
-
-    function calculatePersonalityScore(q3) {
-        let score = 80;
-        if (q3.q1_interest === 'e') score += 5;
-        if (q3.q3_decision === 'f') score += 5;
-        if (q3.q5_stress === 'calm') score += 5;
-        if (q3.q6_challenge === 'challenge') score += 5;
-        if (q3.q7_self_esteem === 'confident') score += 5;
-        return score;
-    }
-
-    function calculateLifeScore(q1, q4) {
-        let score = 20;
-        const age = parseInt(q1.age) || 30;
-        const livingAloneYears = parseInt(q4.living_alone) || 0;
-        const workingYears = Math.max(1, age - 22);
-        const livingRatio = livingAloneYears / workingYears;
-        score += livingRatio * 50;
-        const cookingScore = {'daily': 30, 'often': 20, 'sometimes': 10, 'rarely': 0};
-        score += cookingScore[q4.cooking_freq] || 0;
-        if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') score -= 20;
-        return score;
-    }
-
-    function calculateFutureScore(gender, q5) {
-        let score = 20;
-        const savings = parseInt(q5.savings) || 0;
-        const savingsFactor = (gender === 'male') ? 1.5 : 0.2;
-        score += savings / 10 * savingsFactor;
-        if (q5.assets === 'yes') score += 20;
-        if (q5.chores === 'active') score += 30;
-        return score;
-    }
-
-    function drawRadarChart(scores) {
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: ['基礎能力', '経済力', '内面性', '生活力', '将来性'],
-                datasets: [{
-                    label: 'あなたのスコア',
-                    data: Object.values(scores),
-                    backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                    borderColor: 'rgba(52, 152, 219, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(52, 152, 219, 1)'
-                }]
-            },
-            options: { scales: { r: { beginAtZero: true, max: 200 } }, plugins: { legend: { display: false } } }
-        });
-    }
-    
-    function displayAnalysis(scores) {
-        const container = document.getElementById('analysis-container');
-        container.innerHTML = '';
-        const analysisData = {
-            basic: { title: '基礎能力', score: scores.basic, text: scores.basic > 120 ? '身体的・知的能力の基盤がしっかりしています。' : '基礎能力にはまだ伸びしろがありそうです。' },
-            economic: { title: '経済力とキャリア', score: scores.economic, text: scores.economic > 120 ? '安定した経済基盤とキャリアを築いています。' : 'キャリアアップにより更なる安定が見込めます。' },
-            personality: { title: '内面性', score: scores.personality, text: scores.personality > 120 ? '非常に魅力的でバランスの取れた内面性を持っています。' : '自分らしい魅力をさらに探求する楽しみがあります。' },
-            life: { title: '生活力', score: scores.life, text: scores.life > 120 ? '自立した豊かな生活を送るスキルが非常に高いです。' : '日々のスキルアップで生活がもっと豊かになります。' },
-            future: { title: '将来性', score: scores.future, text: scores.future > 120 ? '将来を見据えた計画性とビジョンを持っています。' : '長期的な視点を持つことで、可能性は無限に広がります。' }
-        };
-        for (const key in analysisData) {
-            const item = analysisData[key];
-            const analysisHtml = `
-                <div class="category-analysis">
-                    <h3>${item.title} <span style="font-size:0.8em; color: #555;">(${item.score} / 200)</span></h3>
-                    <p>${item.text}</p>
+    <div class="container">
+        <div id="results-content">
+            <h1>診断結果</h1>
+            <h2>あなたの総合スコアは <span id="total-score">...</span> / 1000 点です</h2>
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+            <div id="analysis-container" class="analysis-section">
                 </div>
-            `;
-            container.innerHTML += analysisHtml;
+        </div>
+
+        <div id="error-message" style="display: none;">
+            <h1>エラー</h1>
+            <p>診断データが不足しています。<br>お手数ですが、トップページから診断をやり直してください。</p>
+        </div>
+
+        <a href="index.html" class="retry-button">もう一度診断する</a>
+    </div>
+
+    <script>
+        // --- ここからがデバッグ機能付きの新しい診断ロジック ---
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('診断結果ページの処理を開始します。');
+            try {
+                // 1. localStorageから全てのデータを取得し、コンソールに表示
+                console.log('localStorageからデータを取得します...');
+                const gender = localStorage.getItem('gender');
+                console.log('gender:', gender);
+                
+                const q1 = JSON.parse(localStorage.getItem('q1_data'));
+                console.log('q1_data:', q1);
+
+                const q2 = JSON.parse(localStorage.getItem('q2_data'));
+                console.log('q2_data:', q2);
+
+                const q3 = JSON.parse(localStorage.getItem('q3_data'));
+                console.log('q3_data:', q3);
+
+                const q4 = JSON.parse(localStorage.getItem('q4_data'));
+                console.log('q4_data:', q4);
+
+                const q5 = JSON.parse(localStorage.getItem('q5_data'));
+                console.log('q5_data:', q5);
+
+                // データが一つでも欠けていたらエラー表示
+                if (!gender || !q1 || !q2 || !q3 || !q4 || !q5) {
+                    throw new Error('データが不完全です。いずれかのデータがnullです。');
+                }
+                console.log('全てのデータが正常に読み込まれました。');
+                
+                // 2. テーマカラーを設定
+                document.body.classList.add(gender + '-theme');
+                console.log(gender + '-theme を適用しました。');
+
+                // 3. スコア計算
+                console.log('スコア計算を開始します...');
+                const scores = calculateAllScores(gender, q1, q2, q3, q4, q5);
+                console.log('最終スコア:', scores);
+
+                // 4. 総合点を計算し、画面に表示
+                const totalScore = Object.values(scores).reduce((sum, current) => sum + current, 0);
+                document.getElementById('total-score').textContent = totalScore;
+                console.log('総合スコアを表示しました:', totalScore);
+                
+                // 5. レーダーチャートを描画
+                console.log('レーダーチャートを描画します...');
+                drawRadarChart(scores);
+                console.log('レーダーチャートを描画しました。');
+
+                // 6. 詳細な分析結果を表示
+                console.log('詳細な分析結果を表示します...');
+                displayAnalysis(scores);
+                console.log('詳細な分析結果を表示しました。');
+
+            } catch (error) {
+                // tryの中でエラーが起きたら、ここが実行される
+                console.error('エラーが発生しました。処理を中断します。', error);
+                // ユーザーにはエラーメッセージを表示
+                document.getElementById('results-content').style.display = 'none';
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+
+        // スコア計算のメイン関数
+        function calculateAllScores(gender, q1, q2, q3, q4, q5) {
+            let baseScores = {};
+            baseScores.basic = calculateBasicScore(gender, q1);
+            baseScores.economic = calculateEconomicScore(gender, q1, q2);
+            baseScores.personality = calculatePersonalityScore(q3);
+            baseScores.life = calculateLifeScore(q1, q4);
+            baseScores.future = calculateFutureScore(gender, q5);
+            
+            const normalize = (score) => Math.min(Math.max(Math.round(score), 20), 200);
+            let finalScores = {
+                basic: normalize(baseScores.basic),
+                economic: normalize(baseScores.economic),
+                personality: normalize(baseScores.personality),
+                life: normalize(baseScores.life),
+                future: normalize(baseScores.future),
+            };
+            return finalScores;
         }
-    }
-</script>
+
+        // --- 各カテゴリの計算関数 ---
+        function calculateBasicScore(gender, q1) {
+            let score = 50;
+            const height = parseInt(q1.height) || (gender === 'male' ? 171 : 158);
+            const weight = parseFloat(q1.weight) || (gender === 'male' ? 66 : 53);
+            const age = parseInt(q1.age) || 30;
+            if (height > 0) {
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+                const bmiScore = 60 - (Math.abs(22 - bmi) * 5);
+                score += Math.max(0, bmiScore);
+            }
+            const peakAge = (gender === 'male') ? 30 : 27;
+            score += 50 - Math.abs(peakAge - age) * 3;
+            return score;
+        }
+
+        function calculateEconomicScore(gender, q1, q2) {
+            let score = 20;
+            const age = parseInt(q1.age) || 30;
+            const income = parseInt(q2.income) || 450;
+            const avgIncome = { '20s': 350, '30s': 450, '40s': 550, '50s': 650 };
+            let ageGroup = '20s';
+            if (age >= 50) ageGroup = '50s';
+            else if (age >= 40) ageGroup = '40s';
+            else if (age >= 30) ageGroup = '30s';
+            const deviation = income - avgIncome[ageGroup];
+            const incomeFactor = (gender === 'male') ? 15 : 2;
+            score += deviation * incomeFactor;
+            return score;
+        }
+
+        function calculatePersonalityScore(q3) {
+            let score = 80;
+            if (q3.q1_interest === 'e') score += 5;
+            if (q3.q3_decision === 'f') score += 5;
+            if (q3.q5_stress === 'calm') score += 5;
+            if (q3.q6_challenge === 'challenge') score += 5;
+            if (q3.q7_self_esteem === 'confident') score += 5;
+            return score;
+        }
+
+        function calculateLifeScore(q1, q4) {
+            let score = 20;
+            const age = parseInt(q1.age) || 30;
+            const livingAloneYears = parseInt(q4.living_alone) || 0;
+            const workingYears = Math.max(1, age - 22);
+            const livingRatio = livingAloneYears / workingYears;
+            score += livingRatio * 50;
+            const cookingScore = {'daily': 30, 'often': 20, 'sometimes': 10, 'rarely': 0};
+            score += cookingScore[q4.cooking_freq] || 0;
+            if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') score -= 20;
+            return score;
+        }
+
+        function calculateFutureScore(gender, q5) {
+            let score = 20;
+            const savings = parseInt(q5.savings) || 0;
+            const savingsFactor = (gender === 'male') ? 1.5 : 0.2;
+            score += savings / 10 * savingsFactor;
+            if (q5.assets === 'yes') score += 20;
+            if (q5.chores === 'active') score += 30;
+            return score;
+        }
+
+        // --- 描画・表示用の関数 ---
+        function drawRadarChart(scores) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['基礎能力', '経済力', '内面性', '生活力', '将来性'],
+                    datasets: [{
+                        label: 'あなたのスコア',
+                        data: Object.values(scores),
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(52, 152, 219, 1)'
+                    }]
+                },
+                options: { 
+                    scales: { r: { beginAtZero: true, max: 200 } }, 
+                    plugins: { legend: { display: false } } 
+                }
+            });
+        }
+        
+        function displayAnalysis(scores) {
+            const container = document.getElementById('analysis-container');
+            container.innerHTML = '';
+            const analysisData = {
+                basic: { title: '基礎能力', score: scores.basic, text: scores.basic > 120 ? '身体的・知的能力の基盤がしっかりしています。' : '基礎能力にはまだ伸びしろがありそうです。' },
+                economic: { title: '経済力とキャリア', score: scores.economic, text: scores.economic > 120 ? '安定した経済基盤とキャリアを築いています。' : 'キャリアアップにより更なる安定が見込めます。' },
+                personality: { title: '内面性', score: scores.personality, text: scores.personality > 120 ? '非常に魅力的でバランスの取れた内面性を持っています。' : '自分らしい魅力をさらに探求する楽しみがあります。' },
+                life: { title: '生活力', score: scores.life, text: scores.life > 120 ? '自立した豊かな生活を送るスキルが非常に高いです。' : '日々のスキルアップで生活がもっと豊かになります。' },
+                future: { title: '将来性', score: scores.future, text: scores.future > 120 ? '将来を見据えた計画性とビジョンを持っています。' : '長期的な視点を持つことで、可能性は無限に広がります。' }
+            };
+            for (const key in analysisData) {
+                const item = analysisData[key];
+                const analysisHtml = `
+                    <div class="category-analysis">
+                        <h3>${item.title} <span style="font-size:0.8em; color: #555;">(${item.score} / 200)</span></h3>
+                        <p>${item.text}</p>
+                    </div>
+                `;
+                container.innerHTML += analysisHtml;
+            }
+        }
+    </script>
+</body>
+</html>
