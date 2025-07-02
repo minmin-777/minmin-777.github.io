@@ -63,7 +63,7 @@
             display: block;
             width: 80%;
             max-width: 400px;
-            margin: 3em auto 1em auto;
+            margin: 1.5em auto 0 auto; /* 上の余白を調整 */
             padding: 15px;
             background-color: #777;
             color: white;
@@ -80,7 +80,7 @@
             color: red;
             text-align: center;
             font-weight: bold;
-            display: none; /* 通常は非表示 */
+            display: none;
         }
     </style>
 </head>
@@ -102,74 +102,40 @@
             <p>診断データが不足しています。<br>お手数ですが、トップページから診断をやり直してください。</p>
         </div>
 
+        <a id="tweet-button" href="#" class="retry-button" style="background-color: #1DA1F2;" target="_blank" rel="noopener noreferrer">Xで結果をシェアする</a>
         <a href="index.html" class="retry-button">もう一度診断する</a>
-    </div>
+        </div>
 
     <script>
-        // --- ここからがデバッグ機能付きの新しい診断ロジック ---
         window.addEventListener('DOMContentLoaded', function() {
-            console.log('診断結果ページの処理を開始します。');
             try {
-                // 1. localStorageから全てのデータを取得し、コンソールに表示
-                console.log('localStorageからデータを取得します...');
                 const gender = localStorage.getItem('gender');
-                console.log('gender:', gender);
-                
                 const q1 = JSON.parse(localStorage.getItem('q1_data'));
-                console.log('q1_data:', q1);
-
                 const q2 = JSON.parse(localStorage.getItem('q2_data'));
-                console.log('q2_data:', q2);
-
                 const q3 = JSON.parse(localStorage.getItem('q3_data'));
-                console.log('q3_data:', q3);
-
                 const q4 = JSON.parse(localStorage.getItem('q4_data'));
-                console.log('q4_data:', q4);
-
                 const q5 = JSON.parse(localStorage.getItem('q5_data'));
-                console.log('q5_data:', q5);
 
-                // データが一つでも欠けていたらエラー表示
                 if (!gender || !q1 || !q2 || !q3 || !q4 || !q5) {
-                    throw new Error('データが不完全です。いずれかのデータがnullです。');
+                    throw new Error('データが不完全です');
                 }
-                console.log('全てのデータが正常に読み込まれました。');
                 
-                // 2. テーマカラーを設定
                 document.body.classList.add(gender + '-theme');
-                console.log(gender + '-theme を適用しました。');
 
-                // 3. スコア計算
-                console.log('スコア計算を開始します...');
                 const scores = calculateAllScores(gender, q1, q2, q3, q4, q5);
-                console.log('最終スコア:', scores);
-
-                // 4. 総合点を計算し、画面に表示
                 const totalScore = Object.values(scores).reduce((sum, current) => sum + current, 0);
                 document.getElementById('total-score').textContent = totalScore;
-                console.log('総合スコアを表示しました:', totalScore);
                 
-                // 5. レーダーチャートを描画
-                console.log('レーダーチャートを描画します...');
                 drawRadarChart(scores);
-                console.log('レーダーチャートを描画しました。');
-
-                // 6. 詳細な分析結果を表示
-                console.log('詳細な分析結果を表示します...');
-                displayAnalysis(scores);
-                console.log('詳細な分析結果を表示しました。');
+                displayAnalysis(scores, totalScore);
 
             } catch (error) {
-                // tryの中でエラーが起きたら、ここが実行される
-                console.error('エラーが発生しました。処理を中断します。', error);
-                // ユーザーにはエラーメッセージを表示
+                console.error('エラーが発生しました。', error);
                 document.getElementById('results-content').style.display = 'none';
                 document.getElementById('error-message').style.display = 'block';
             }
         });
 
-        // スコア計算のメイン関数
         function calculateAllScores(gender, q1, q2, q3, q4, q5) {
             let baseScores = {};
             baseScores.basic = calculateBasicScore(gender, q1);
@@ -179,17 +145,15 @@
             baseScores.future = calculateFutureScore(gender, q5);
             
             const normalize = (score) => Math.min(Math.max(Math.round(score), 20), 200);
-            let finalScores = {
+            return {
                 basic: normalize(baseScores.basic),
                 economic: normalize(baseScores.economic),
                 personality: normalize(baseScores.personality),
                 life: normalize(baseScores.life),
                 future: normalize(baseScores.future),
             };
-            return finalScores;
         }
 
-        // --- 各カテゴリの計算関数 ---
         function calculateBasicScore(gender, q1) {
             let score = 50;
             const height = parseInt(q1.height) || (gender === 'male' ? 171 : 158);
@@ -234,27 +198,14 @@
         function calculateLifeScore(q1, q4) {
             const age = parseInt(q1.age) || 30;
             const livingAloneYears = parseInt(q4.living_alone) || 0;
-    
-            // 1. 「経験年数」そのものを直接評価し、基礎点とする
-            let score = livingAloneYears * 10; // 例: 5年なら50点、10年なら100点
-    
-            // 2. 「経験の質」をボーナス点として加える
+            let score = livingAloneYears * 10;
             const workingYears = Math.max(1, age - 22);
             const livingRatio = livingAloneYears / workingYears;
-            score += livingRatio * 20; // 比率による加点は以前より影響を抑える
-    
-            // 3. その他の項目で加点・減点
+            score += livingRatio * 20;
             const cookingScore = {'daily': 30, 'often': 20, 'sometimes': 10, 'rarely': 0};
             score += cookingScore[q4.cooking_freq] || 0;
-            
-            if (q4.emergency_fund === 'yes') {
-                score += 20;
-            }
-    
-            if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') {
-                score -= 20;
-            }
-            
+            if (q4.emergency_fund === 'yes') score += 20;
+            if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') score -= 20;
             return score;
         }
 
@@ -268,7 +219,6 @@
             return score;
         }
 
-        // --- 描画・表示用の関数 ---
         function drawRadarChart(scores) {
             const ctx = document.getElementById('radarChart').getContext('2d');
             new Chart(ctx, {
@@ -284,14 +234,11 @@
                         pointBackgroundColor: 'rgba(52, 152, 219, 1)'
                     }]
                 },
-                options: { 
-                    scales: { r: { beginAtZero: true, max: 200 } }, 
-                    plugins: { legend: { display: false } } 
-                }
+                options: { scales: { r: { beginAtZero: true, max: 200 } }, plugins: { legend: { display: false } } }
             });
         }
         
-        function displayAnalysis(scores) {
+        function displayAnalysis(scores, totalScore) {
             const container = document.getElementById('analysis-container');
             container.innerHTML = '';
             const analysisData = {
@@ -311,6 +258,13 @@
                 `;
                 container.innerHTML += analysisHtml;
             }
+
+            // ▼▼▼ X投稿ボタンのURLを生成する処理 ▼▼▼
+            const tweetButton = document.getElementById('tweet-button');
+            const siteUrl = 'https://minmin-777.github.io/'; // あなたのサイトのURL
+            const tweetText = `私の未来設計力スコアは【${totalScore} / 1000点】でした！\nあなたも自分の市場価値を診断してみよう！\n\n#未来設計力スコア診断\n`;
+            const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
+            tweetButton.href = tweetUrl;
         }
     </script>
 </body>
