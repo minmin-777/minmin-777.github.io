@@ -63,7 +63,7 @@
             display: block;
             width: 80%;
             max-width: 400px;
-            margin: 1.5em auto 0 auto; /* 上の余白を調整 */
+            margin: 1.5em auto 0 auto;
             padding: 15px;
             background-color: #777;
             color: white;
@@ -104,7 +104,7 @@
 
         <a id="tweet-button" href="#" class="retry-button" style="background-color: #1DA1F2;" target="_blank" rel="noopener noreferrer">Xで結果をシェアする</a>
         <a href="index.html" class="retry-button">もう一度診断する</a>
-        </div>
+    </div>
 
     <script>
         window.addEventListener('DOMContentLoaded', function() {
@@ -259,9 +259,8 @@
                 container.innerHTML += analysisHtml;
             }
 
-            // ▼▼▼ X投稿ボタンのURLを生成する処理 ▼▼▼
             const tweetButton = document.getElementById('tweet-button');
-            const siteUrl = 'https://minmin-777.github.io/'; // あなたのサイトのURL
+            const siteUrl = 'https://minmin-777.github.io/';
             const tweetText = `私の未来設計力スコアは【${totalScore} / 1000点】でした！\nあなたも自分の市場価値を診断してみよう！\n\n#未来設計力スコア診断\n`;
             const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(siteUrl)}`;
             tweetButton.href = tweetUrl;
