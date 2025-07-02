@@ -1,39 +1,27 @@
-<h2>あなたの魅力を分析します</h2>
-<p>いくつかの質問に答えてください。</p>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>人間関係ポテンシャル診断</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin: 2em; }
+        .container { max-width: 600px; margin: auto; }
+        .caution { background-color: #fef4f4; border: 1px solid #f8c8c8; padding: 1em; border-radius: 8px; margin: 2em 0; }
+        .start-button { background-color: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>人間関係ポテンシャル診断</h1>
+        <p>あなたの魅力と、未来の可能性を一緒に見つけてみませんか？</p>
 
-<form id="calc-form">
-    <label>質問1：</label>
-    <select id="q1">
-        <option value="10">選択肢A</option>
-        <option value="5">選択肢B</option>
-        <option value="0">選択肢C</option>
-    </select>
-    <br><br>
+        <div class="caution">
+            <strong>【はじめにお読みください】</strong><br>
+            この診断は、あなたの価値に点数をつけたり、優劣を決めたりするものではありません。<br>
+            より良い人間関係を築くための「ヒント」を見つけるお手伝いをするツールです。
+        </div>
 
-    <label>質問2：</label>
-    <select id="q2">
-        <option value="10">選択肢X</option>
-        <option value="5">選択肢Y</option>
-        <option value="0">選択肢Z</option>
-    </select>
-    <br><br>
-
-    <button type="button" onclick="calculateScore()">結果を見る</button>
-</form>
-
-<h2 id="result-area"></h2>
-
-<script>
-    function calculateScore() {
-        // 各質問の回答の値を取得
-        const score1 = parseInt(document.getElementById('q1').value);
-        const score2 = parseInt(document.getElementById('q2').value);
-
-        // 合計スコアを計算
-        const totalScore = score1 + score2;
-
-        // 結果を表示
-        const resultArea = document.getElementById('result-area');
-        resultArea.innerText = 'あなたの優良物件度数は ' + totalScore + ' 点です！';
-    }
-</script>
+        <a href="quiz.html" class="start-button">診断をはじめる</a>
+    </div>
+</body>
+</html>
