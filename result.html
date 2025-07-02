@@ -232,30 +232,31 @@
         }
 
         function calculateLifeScore(q1, q4) {
-        // 1. 一人暮らし経験年数をスコアの土台（基礎点）とする
-        const livingAloneYears = parseInt(q4.living_alone) || 0;
-        let score = livingAloneYears * 10; // 経験年数が多いほど、基礎点が直接的に高くなる
-
-        // 2. 料理スキルで加点
-        const cookingScore = {'daily': 40, 'often': 25, 'sometimes': 10, 'rarely': 0};
-        score += cookingScore[q4.cooking_freq] || 0;
-
-        // 3. 整理整頓スキルで加点
-        const cleaningScore = {'good': 20, 'average': 10, 'bad': 0};
-        score += cleaningScore[q4.cleaning] || 0;
-
-        // 4. 金銭感覚で減点
-        if(q4.brand_goods === 'often') {
-            score -= 20; // 頻繁に買う場合は減点
+            const age = parseInt(q1.age) || 30;
+            const livingAloneYears = parseInt(q4.living_alone) || 0;
+    
+            // 1. 「経験年数」そのものを直接評価し、基礎点とする
+            let score = livingAloneYears * 10; // 例: 5年なら50点、10年なら100点
+    
+            // 2. 「経験の質」をボーナス点として加える
+            const workingYears = Math.max(1, age - 22);
+            const livingRatio = livingAloneYears / workingYears;
+            score += livingRatio * 20; // 比率による加点は以前より影響を抑える
+    
+            // 3. その他の項目で加点・減点
+            const cookingScore = {'daily': 30, 'often': 20, 'sometimes': 10, 'rarely': 0};
+            score += cookingScore[q4.cooking_freq] || 0;
+            
+            if (q4.emergency_fund === 'yes') {
+                score += 20;
+            }
+    
+            if(q4.brand_goods === 'often' || q4.brand_goods === 'sometimes') {
+                score -= 20;
+            }
+            
+            return score;
         }
-
-        // 5. 緊急時の対応力で加点
-        if (q4.emergency_fund === 'yes') {
-            score += 20;
-        }
-
-        return score;
-    }
 
         function calculateFutureScore(gender, q5) {
             let score = 20;
