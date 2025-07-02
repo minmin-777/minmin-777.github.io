@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. 生活力 | 未来設計力スコア診断</title>
+    <style>
+        /* これまでのページと同じスタイルを再利用 */
+        :root {
+            --primary-color: #555;
+            --secondary-color: #f4f7f9;
+        }
+        body.male-theme { --primary-color: #3498db; }
+        body.female-theme { --primary-color: #e91e63; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background-color: var(--secondary-color);
+            color: #333;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 2em 2.5em;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5em;
+            margin-bottom: 1.5em;
+        }
+        .question-group { margin-bottom: 2em; }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .radio-options label {
+            display: inline-block;
+            margin-right: 1.5em;
+            font-weight: normal;
+        }
+        .radio-options input { margin-right: 0.4em; }
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .submit-button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>4. 生活力 - 日々を豊かにするスキル</h1>
+        <form id="q4-form">
+            <div class="question-group">
+                <label for="living-alone">一人暮らし経験</label>
+                <select id="living-alone" required>
+                    <option value="">選択してください</option>
+                    <option value="0">0年（経験なし）</option>
+                    <option value="2">1〜2年</option>
+                    <option value="5">3〜5年</option>
+                    <option value="10">6〜10年</option>
+                    <option value="11">10年以上</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label for="cooking-freq">料理の頻度</label>
+                <select id="cooking-freq" required>
+                    <option value="">選択してください</option>
+                    <option value="daily">ほぼ毎日</option>
+                    <option value="often">週に3〜4回</option>
+                    <option value="sometimes">週に1〜2回</option>
+                    <option value="rarely">ほぼしない</option>
+                </select>
+            </div>
+
+            <div class="question-group">
+                <label>掃除・整理整頓は得意ですか？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="cleaning" value="good" required> 得意</label>
+                    <label><input type="radio" name="cleaning" value="average"> 普通</label>
+                    <label><input type="radio" name="cleaning" value="bad"> 苦手</label>
+                </div>
+            </div>
+            
+            <div class="question-group">
+                <label>急な出費（10万円程度）に対応できますか？</label>
+                <div class="radio-options">
+                    <label><input type="radio" name="emergency-fund" value="yes" required> はい</label>
+                    <label><input type="radio" name="emergency-fund" value="no"> いいえ</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <label for="brand-goods">ブランド品の購入頻度</label>
+                <select id="brand-goods" required>
+                    <option value="">選択してください</option>
+                    <option value="often">頻繁に買う</option>
+                    <option value="sometimes">たまに買う</option>
+                    <option value="rarely">ほとんど買わない</option>
+                    <option value="never">全く買わない</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-button">次へ進む</button>
+        </form>
+    </div>
+
+    <script>
+        // --- ページ読み込み時の処理 ---
+        window.addEventListener('DOMContentLoaded', function() {
+            const gender = localStorage.getItem('gender');
+            if (gender) {
+                document.body.classList.add(gender + '-theme');
+            }
+        });
+
+        // --- 「次へ進む」ボタンが押された時の処理 ---
+        document.getElementById('q4-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // 回答データをオブジェクトにまとめる
+            const q4_data = {
+                living_alone: document.getElementById('living-alone').value,
+                cooking_freq: document.getElementById('cooking-freq').value,
+                cleaning: document.querySelector('input[name="cleaning"]:checked').value,
+                emergency_fund: document.querySelector('input[name="emergency-fund"]:checked').value,
+                brand_goods: document.getElementById('brand-goods').value,
+            };
+
+            // localStorageに回答データを保存
+            localStorage.setItem('q4_data', JSON.stringify(q4_data));
+
+            // 次の質問ページへ移動
+            window.location.href = 'q5.html';
+        });
+    </script>
+
+</body>
+</html>
