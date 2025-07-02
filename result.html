@@ -30,7 +30,9 @@
             displayAnalysis(scores);
 
         } catch (error) {
-            console.error(error);
+            // tryの中でエラーが起きたら、ここが実行される
+            console.error(error); // 開発者向けにエラー内容を記録
+            // ユーザーにはエラーメッセージを表示
             document.getElementById('results-content').style.display = 'none';
             document.getElementById('error-message').style.display = 'block';
         }
@@ -63,25 +65,27 @@
     // --- 各カテゴリの計算関数 ---
 
     function calculateBasicScore(gender, q1) {
-        let score = 50;
-        const height = parseInt(q1.height);
-        const weight = parseFloat(q1.weight);
-        const age = parseInt(q1.age);
-
-        // BMIスコアの計算
-        if (height > 0) {
+    　　let score = 50;
+    
+    // --- ここから改善コード ---
+    // 無効な値が入っていた場合、日本の平均的な数値をデフォルト値として使用
+        const height = parseInt(q1.height) || (gender === 'male' ? 171 : 158);
+        const weight = parseFloat(q1.weight) || (gender === 'male' ? 66 : 53);
+        const age = parseInt(q1.age) || 30;
+    // --- ここまで改善コード ---
+    
+    // BMIスコアの計算
+        if (height > 0) { // 0での割り算を防ぐ
             const heightInMeters = height / 100;
             const bmi = weight / (heightInMeters * heightInMeters);
-            
-            // BMIは22を理想値とし、そこから離れるほどスコアが下がる
             const bmiScore = 60 - (Math.abs(22 - bmi) * 5);
-            score += Math.max(0, bmiScore); // マイナス点にならないようにする
+            score += Math.max(0, bmiScore);
         }
-
-        // 年齢スコア
+    
+    // 年齢スコア
         const peakAge = (gender === 'male') ? 30 : 27;
         score += 50 - Math.abs(peakAge - age) * 3;
-
+    
         return score;
     }
 
